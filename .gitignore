@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# MLflow local tracking store
+mlruns/
+mlflow.db
+mlflow.db-journal
+mlflow.db-shm
+mlflow.db-wal
