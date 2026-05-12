@@ -167,7 +167,17 @@ def main() -> None:
             )
             mlflow.log_artifacts(str(tmp), artifact_path="holdout")
 
-        mlflow.sklearn.log_model(final_pipe, name="model")
+        name_parts = [args.pipeline]
+        for k, v in pipe_params.items():
+            if k not in ("features", "clf", "pipeline"):
+                name_parts.append(f"{k}-{int(v) if isinstance(v, float) else v}")
+        registered_name = "_".join(name_parts)
+
+        mlflow.sklearn.log_model(
+            final_pipe,
+            name=registered_name,
+            registered_model_name=registered_name
+        )
 
         print(
             json.dumps(
