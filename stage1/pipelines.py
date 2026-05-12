@@ -62,7 +62,9 @@ def tfidf_svm(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     return pipe, params
 
 def tfidf_nn(seed: int) -> tuple[Pipeline, dict[str, Any]]:
-    svd_components = 300
+    svd_components = 200
+    epochs = 30
+    layer_size = 64
     pipe = Pipeline(
         steps=[
             ("tfidf", build_tfidf()),
@@ -72,7 +74,8 @@ def tfidf_nn(seed: int) -> tuple[Pipeline, dict[str, Any]]:
                 stage1.nn_model.DeterministicNN(
                     model=stage1.nn_model.build_one_layer_nn,
                     seed=seed,
-                    fit_kwargs={"epochs": 20, "verbose": 0}
+                    model_kwargs= {"layer_size": layer_size},
+                    fit_kwargs={"epochs": epochs, "verbose": 0 }
                 )
             ),
         ]
@@ -80,9 +83,10 @@ def tfidf_nn(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     params = {
         "features": "tfidf_1_2gram_mindf2",
         "clf": "nn",
-        "epochs": 20,
+        "epochs": epochs,
         "svd_n_components": svd_components,
         "seed": seed,
+        "layer_size": layer_size
     }
     return pipe, params
 
