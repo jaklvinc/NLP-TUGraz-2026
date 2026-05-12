@@ -4,6 +4,7 @@ from typing import Any, Callable
 
 import keras
 from sklearn.decomposition import TruncatedSVD
+from sklearn.preprocessing import StandardScaler
 
 import stage1.nn_model
 from sklearn.linear_model import LogisticRegression
@@ -90,8 +91,46 @@ def tfidf_nn(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     }
     return pipe, params
 
+def tfidf_nn_with_scaling(seed: int) -> tuple[Pipeline, dict[str, Any]]:
+    svd_components = 300
+    epochs = 30
+    layer_size = 64
+    pipe = Pipeline(
+        steps=[
+            ("tfidf", build_tfidf()),
+            ('svd', TruncatedSVD(n_components=svd_components, random_state=seed)),
+            ('scaler',StandardScaler()),
+            (
+                "clf",
+                stage1.nn_model.DeterministicNN(
+                    model=stage1.nn_model.build_one_layer_nn,
+                    seed=seed,
+                    model_kwargs= {"layer_size": layer_size},
+                    fit_kwargs={"epochs": epochs, "verbose": 0 }
+                )
+            ),
+        ]
+    )
+    params = {
+        "features": "tfidf_1_2gram_mindf2",
+        "clf": "nn",
+        "epochs": epochs,
+        "svd_n_components": svd_components,
+        "seed": seed,
+        "layer_size": layer_size
+    }
+    return pipe, params
+
+def fasttext_logreg(seed: int) -> tuple[Pipeline, dict[str, Any]]:
+    pipe = Pipeline(
+        steps=[
+
+        ]
+    )
+
 PIPELINES: dict[str, PipelineFactory] = {
     "tfidf_logreg": tfidf_logreg,
     "tfidf_svm": tfidf_svm,
     "tfidf_nn":tfidf_nn,
+    "tfidf_nn_with_scaling":tfidf_nn_with_scaling
 }
