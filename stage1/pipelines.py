@@ -12,6 +12,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 from stage1.features import build_tfidf
+from stage1.vectorizer import FastTextVectorizer
 
 PipelineFactory = Callable[[int], tuple[Pipeline, dict[str, Any]]]
 
@@ -121,16 +122,32 @@ def tfidf_nn_with_scaling(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     }
     return pipe, params
 
+
 def fasttext_logreg(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     pipe = Pipeline(
         steps=[
-
-        ]
+            ('fast_text',FastTextVectorizer()),
+            #('scaler',StandardScaler()),
+            ('clf',LogisticRegression(
+                    C=1.0,
+                    max_iter=1000,
+                    class_weight="balanced",
+                    random_state=seed,
+                )
+            )
+        ],
     )
+    params = {
+        "features": "fasttext",
+        "clf": "logreg",
+        "C": 1.0,
+    }
+    return pipe,params
 
 PIPELINES: dict[str, PipelineFactory] = {
     "tfidf_logreg": tfidf_logreg,
     "tfidf_svm": tfidf_svm,
     "tfidf_nn":tfidf_nn,
-    "tfidf_nn_with_scaling":tfidf_nn_with_scaling
+    "tfidf_nn_with_scaling":tfidf_nn_with_scaling,
+    'fasttext_logreg': fasttext_logreg
 }
