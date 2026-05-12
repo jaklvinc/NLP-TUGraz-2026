@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+import keras
+from sklearn.decomposition import TruncatedSVD
+
+import stage1.nn_model
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
@@ -57,8 +61,33 @@ def tfidf_svm(seed: int) -> tuple[Pipeline, dict[str, Any]]:
     }
     return pipe, params
 
+def tfidf_nn(seed: int) -> tuple[Pipeline, dict[str, Any]]:
+    svd_components = 300
+    pipe = Pipeline(
+        steps=[
+            ("tfidf", build_tfidf()),
+            ('svd', TruncatedSVD(n_components=svd_components, random_state=seed)),
+            (
+                "clf",
+                stage1.nn_model.DeterministicNN(
+                    model=stage1.nn_model.build_one_layer_nn,
+                    seed=seed,
+                    fit_kwargs={"epochs": 20, "verbose": 0}
+                )
+            ),
+        ]
+    )
+    params = {
+        "features": "tfidf_1_2gram_mindf2",
+        "clf": "nn",
+        "epochs": 20,
+        "svd_n_components": svd_components,
+        "seed": seed,
+    }
+    return pipe, params
 
 PIPELINES: dict[str, PipelineFactory] = {
     "tfidf_logreg": tfidf_logreg,
     "tfidf_svm": tfidf_svm,
+    "tfidf_nn":tfidf_nn,
 }
